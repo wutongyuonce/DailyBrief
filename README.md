@@ -14,7 +14,7 @@
 
 - **本地驱动**：系统自带调度器触发（Windows Task Scheduler / macOS launchd / Linux cron），不依赖任何云服务
 - **数据源零 API key**：所有数据源走免费公开端点（RSS / 公开 JSON）
-- **LLM 后端可插拔**：默认走本地 [claude CLI](https://github.com/anthropics/claude-code) 扣 **Max 订阅额度**；也可一行配置切到 Anthropic / OpenAI / DeepSeek / MiniMax 任一 API（按 token 计费）—— 见 [LLM 后端配置](#llm-后端配置)
+- **LLM 后端可插拔**：通过 `LLM_BACKEND` 环境变量在 claude CLI / Anthropic / OpenAI / DeepSeek / MiniMax 之间一行切换。默认走本地 [claude CLI](https://github.com/anthropics/claude-code)（复用 Claude Code 已有的认证，按你订阅的等级计费），其他后端按各家 API key 走 —— 见 [LLM 后端配置](#llm-后端配置)
 - **错误隔离**：单源失败不阻断全流程，单次 LLM 失败有 1-shot 重试 + 兜底渲染
 - **可观测**：每次任务运行写 `logs/daily-<日期>.log`，每次 LLM 调用写 `logs/llm-calls.jsonl`，`npm run quota-report` 按 backend 汇总热度
 
@@ -22,8 +22,8 @@
 
 - **Node.js 20+** + **npm**
 - **Windows 10/11** / **macOS 12+** / **Linux**（任一平台都支持，定时机制自动适配）
-- **一个能跑的 LLM**：
-  - 默认方案：[Claude Code CLI](https://docs.claude.com/en/docs/claude-code/quickstart) 已登录（Max 订阅最划算）
+- **一个能跑的 LLM**（任选其一）：
+  - 默认：[Claude Code CLI](https://docs.claude.com/en/docs/claude-code/quickstart) 已登录（项目复用它的认证，按你 Claude 订阅的等级计费）
   - 或：Anthropic / OpenAI / DeepSeek / MiniMax 任一家的 API key（详见 [LLM 后端配置](#llm-后端配置)）
 - **git**
 
@@ -36,11 +36,11 @@
 
 Agent 会自动 `git clone` → `npm install` → 注册系统调度器 → 链接全局 skill → 跑一次 `npm run dry-run` 烟测。完成后任意目录打开 Claude Code 都能用 `/run-daily`、`/check-daily`，描述问题（"日报又挂了"）也能触发 `daily-brief` skill 自动加载。
 
-> ⚠️ 默认使用 **claude CLI** 跑 LLM（扣 Max 订阅而非 token）。Agent 替不了它的 OAuth 登录（必须本人在浏览器点同意）。如果还没登录过，先跑一次：
+> ⚠️ 默认 LLM 后端是 **claude CLI**（多数 Claude Code 用户开箱即用）。Agent 替不了它的 OAuth 登录（必须本人在浏览器点同意）。如果还没登录过，先跑一次：
 > ```bash
 > echo "hi" | claude --print --model sonnet
 > ```
-> 会引导你登录，登录一次永久生效。**没有 Max 订阅的用户**可以改用 OpenAI / Anthropic / DeepSeek / MiniMax API，见 [LLM 后端配置](#llm-后端配置)。
+> 会引导你登录，登录一次永久生效。**不用 Claude Code 或想走自己的 API key**，复制 `.env.example` 到 `.env.local` 把 `LLM_BACKEND` 切到 OpenAI / Anthropic / DeepSeek / MiniMax 任一家，见 [LLM 后端配置](#llm-后端配置)。
 
 ## 一键安装（自己跑）
 
@@ -113,7 +113,7 @@ node scripts/install.mjs --global
 
 ## LLM 后端配置
 
-项目通过 `LLM_BACKEND` 环境变量切换后端。**默认 `claude-cli`**（不设环境变量也是它），所以登录过 Claude Code 的用户开箱即用。
+项目通过 `LLM_BACKEND` 环境变量切换后端。**默认 `claude-cli`** —— 直接复用 Claude Code 已登录的认证，不需要额外配 API key。不用 Claude Code、或想走自己的 API key，按下表切换。
 
 把 `.env.example` 复制成 `.env.local`（已经 gitignored），按 backend 解开对应几行：
 
@@ -135,10 +135,10 @@ node scripts/install.mjs --global
 
 | 你的情况 | 推荐 backend |
 |---|---|
-| 已经订了 Claude Max（**Max 5h 滚动窗口够用，不想额外付钱**） | `claude-cli` |
-| 没 Max，只想跑日报，预算 ~$0.5/天 | `openai` 配 `gpt-4o-mini` 或 `deepseek` 配 `deepseek-v4-flash`（更便宜） |
-| 中文摘要质量优先，预算可放宽 | `anthropic` 配 `claude-sonnet-4-6`（API 计费） |
-| 国内网络访问，要规避 GFW | `deepseek` 或 `minimax`（都是国内厂商） |
+| 已经在用 Claude Code（任意订阅等级）| `claude-cli` — 零配置，按你订阅的等级走 |
+| 不用 Claude Code，只想低成本跑日报 | `openai` 配 `gpt-4o-mini`、或 `deepseek` 配 `deepseek-v4-flash`（更便宜）|
+| 中文摘要质量优先，预算可放宽 | `anthropic` 配 `claude-sonnet-4-6` |
+| 国内网络访问，要规避 GFW | `deepseek` 或 `minimax`（都是国内厂商）|
 
 ### 切 backend 不需要改代码
 
