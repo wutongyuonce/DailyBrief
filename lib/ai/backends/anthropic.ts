@@ -13,13 +13,13 @@ function getClient(): Anthropic {
       "ANTHROPIC_API_KEY is required for LLM_BACKEND=anthropic. Set it in .env.local.",
     );
   }
-  const baseURL = process.env.ANTHROPIC_BASE_URL;
+  const baseURL = process.env.ANTHROPIC_BASE_URL?.trim() || undefined;
   cachedClient = new Anthropic({ apiKey, ...(baseURL ? { baseURL } : {}) });
   return cachedClient;
 }
 
 export function anthropicModel(): string {
-  return process.env.LLM_MODEL ?? ANTHROPIC_DEFAULT_MODEL;
+  return process.env.LLM_MODEL?.trim() || ANTHROPIC_DEFAULT_MODEL;
 }
 
 export async function runAnthropic({

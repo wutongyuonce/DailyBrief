@@ -51,8 +51,8 @@ function getClient(cfg: OpenAICompatConfig): { client: OpenAI; model: string } {
       `${cfg.apiKeyEnv} is required for LLM_BACKEND=${cfg.backend}. Set it in .env.local.`,
     );
   }
-  const baseURL = process.env[cfg.baseUrlEnv] ?? cfg.defaultBaseUrl;
-  const model = process.env.LLM_MODEL ?? cfg.defaultModel;
+  const baseURL = process.env[cfg.baseUrlEnv]?.trim() || cfg.defaultBaseUrl;
+  const model = process.env.LLM_MODEL?.trim() || cfg.defaultModel;
 
   const cacheKey = `${baseURL}::${apiKey.slice(-6)}`;
   let client = clientCache.get(cacheKey);
@@ -64,7 +64,7 @@ function getClient(cfg: OpenAICompatConfig): { client: OpenAI; model: string } {
 }
 
 export function openaiCompatModel(cfg: OpenAICompatConfig): string {
-  return process.env.LLM_MODEL ?? cfg.defaultModel;
+  return process.env.LLM_MODEL?.trim() || cfg.defaultModel;
 }
 
 export async function runOpenAICompat(

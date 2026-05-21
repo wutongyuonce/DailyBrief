@@ -3,10 +3,10 @@ import path from "node:path";
 import { classifyError, logLlmCall } from "../log";
 import type { LlmRunOptions, LlmRunResult } from "../llm";
 
-export const CLAUDE_MODEL = process.env.CLAUDE_MODEL ?? "sonnet";
+export const CLAUDE_MODEL = process.env.CLAUDE_MODEL?.trim() || "sonnet";
 
 function resolveCliPath(): string {
-  const override = process.env.CLAUDE_CLI_PATH;
+  const override = process.env.CLAUDE_CLI_PATH?.trim();
   if (override) return override;
   const appdata = process.env.APPDATA;
   if (appdata) return path.join(appdata, "npm", "claude.cmd");

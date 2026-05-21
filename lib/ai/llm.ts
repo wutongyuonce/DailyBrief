@@ -54,7 +54,7 @@ const VALID_BACKENDS: ReadonlySet<LlmBackendId> = new Set([
 ]);
 
 export function getBackend(): LlmBackendId {
-  const raw = (process.env.LLM_BACKEND ?? "claude-cli").trim().toLowerCase();
+  const raw = (process.env.LLM_BACKEND?.trim() || "claude-cli").toLowerCase();
   if (!VALID_BACKENDS.has(raw as LlmBackendId)) {
     throw new Error(
       `Unknown LLM_BACKEND='${raw}'. Valid values: ${[...VALID_BACKENDS].join(", ")}`,
