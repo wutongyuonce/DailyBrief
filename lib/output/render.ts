@@ -475,11 +475,10 @@ function renderSourceTabs(
   subId: string,
   sources: SourceGroup[],
 ): string {
-  if (sources.length === 0) return "";
-  // Always render source label(s), even when there's only one. Otherwise
-  // the reader sees a bare list and can't tell which community / dataset
-  // the items are coming from (e.g. community panel with only V2EX, or
-  // X 推文 with only attentionvc-ai).
+  // Single-source L2s (X 推文 / GitHub Trending) skip the L3 row — the L2 tab
+  // label already identifies the dataset. L3 only earns its row when there
+  // are ≥2 sources to switch between (e.g. 社区讨论 V2EX vs LinuxDo).
+  if (sources.length < 2) return "";
   return `<nav class="source-tabs">${sources
     .map(
       (s, i) =>
